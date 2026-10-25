@@ -13,3 +13,6 @@ state.corrupt-*.json
 watcher.log*
 .idea/
 .vscode/
+
+# 本地工作记录与接手文档，不公开
+技能.md
