@@ -1,9 +1,7 @@
 @echo off
 chcp 65001 >nul
-if "%~1"=="" (
-  echo 用法：install.cmd 学校id，例如 install.cmd gdut
-  pause
-  exit /b 1
-)
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0install.ps1" -School %1
+set "SCHOOL=%~1"
+if "%SCHOOL%"=="" set /p "SCHOOL=请输入学校 id（广东工业大学是 gdut）："
+if "%SCHOOL%"=="" exit /b 1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0install.ps1" -School "%SCHOOL%"
 if errorlevel 1 pause

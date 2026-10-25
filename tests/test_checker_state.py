@@ -22,6 +22,9 @@ class TempAppDir(unittest.TestCase):
         previous = state.APP_DIR
         state.use_app_dir(Path(self._temp.name))
         self.addCleanup(state.use_app_dir, previous)
+        env = patch.dict("os.environ", {"CAMPUS_WATCHER_NO_UPDATE_CHECK": "1"})
+        env.start()
+        self.addCleanup(env.stop)
         self.school = load_school("gdut")
 
     def save(self, data: dict) -> None:

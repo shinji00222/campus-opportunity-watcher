@@ -141,6 +141,8 @@ powershell -ExecutionPolicy Bypass -File scripts\install.ps1 -School <学校id> 
 
 EXE 用户：把 `schools\<学校id>` 整个文件夹复制到 `%LOCALAPPDATA%\CampusOpportunityWatcher\schools\`，然后在发布包里运行 `install.cmd <学校id>`。这里的配置优先于程序内置的同名学校。
 
+注意：程序已经内置的学校（如 `gdut`）不要复制到上面这个目录，否则会一直用这份副本，新版程序里修好的来源就不会生效。
+
 ## 7. 不要做的事
 
 - 不要配置需要登录才能看的页面（教务系统、学工系统、统一身份认证后的平台）。

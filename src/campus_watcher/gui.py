@@ -7,7 +7,7 @@ import tkinter as tk
 import webbrowser
 from tkinter import messagebox, ttk
 
-from campus_watcher import state
+from campus_watcher import state, updates
 from campus_watcher.checker import CHECK_ALREADY_RUNNING, run_check
 from campus_watcher.config import School
 from campus_watcher.matching import PROFILE_FIELDS, evaluate_notice
@@ -104,7 +104,10 @@ class MainWindow:
                   style="HeaderHint.TLabel").pack(anchor="w", pady=(4, 0))
         actions = ttk.Frame(top, style="Header.TFrame")
         actions.pack(side="right")
-        ttk.Button(actions, text="个人档案", command=self.open_profile).pack(side="left", padx=(0, 8))
+        self.update_btn = ttk.Button(actions, text="", command=self.open_update_page)
+        self.update_url = ""
+        self.profile_btn = ttk.Button(actions, text="个人档案", command=self.open_profile)
+        self.profile_btn.pack(side="left", padx=(0, 8))
         self.check_btn = ttk.Button(actions, text="立即检测", style="Primary.TButton", command=self.start_check)
         self.check_btn.pack(side="left")
 
@@ -205,6 +208,17 @@ class MainWindow:
         if saved.get("last_error"):
             detail += "　部分来源暂时无法访问"
         self.status.set(detail)
+        release = updates.pending_update(saved)
+        if release:
+            self.update_url = release.get("url") or updates.RELEASES_PAGE
+            self.update_btn.config(text=f"新版本 v{release['version']}")
+            if not self.update_btn.winfo_ismapped():
+                self.update_btn.pack(side="left", padx=(0, 8), before=self.profile_btn)
+        elif self.update_btn.winfo_ismapped():
+            self.update_btn.pack_forget()
+
+    def open_update_page(self):
+        webbrowser.open(self.update_url or updates.RELEASES_PAGE)
 
     def open_selected(self, _event=None):
         selected = self.tree.selection()

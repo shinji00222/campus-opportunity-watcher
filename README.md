@@ -50,6 +50,12 @@ python -m PyInstaller --noconfirm --clean --onefile --windowed `
 
 发布包里放 `dist\CampusOpportunityWatcher.exe` 和 `scripts\` 下的安装、卸载脚本。
 
+## 更新
+
+程序每天检查一次 GitHub 上有没有新版本，有的话弹一次通知，界面右上角也会出现“新版本”按钮，点开就是下载页。更新时关闭程序，下载新的 ZIP，再运行一次安装脚本就行，个人档案、收藏和历史都会保留。
+
+不想检查更新的话，设置环境变量 `CAMPUS_WATCHER_NO_UPDATE_CHECK=1`。手动查一次：`python run_watcher.py --check-update`。
+
 ## 隐私
 
 个人档案、收藏、检测记录和日志只存在本机 `%LOCALAPPDATA%\CampusOpportunityWatcher\<学校id>\`，不会上传。工具只读公开网页，不登录任何系统。

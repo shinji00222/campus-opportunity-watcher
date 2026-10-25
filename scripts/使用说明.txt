@@ -1,0 +1,17 @@
+校园机会提醒 使用说明
+
+安装
+1. 关闭正在运行的校园机会提醒。
+2. 解压整个 ZIP，双击 install.cmd，输入学校 id（广东工业大学是 gdut）。
+3. 程序会打开，先点“立即检测”建立基线。之后每天 8:00 和 20:00 自动检查，有新通知会弹窗提醒。
+
+更新
+程序发现新版本时会弹通知，右上角也会出现“新版本”按钮。下载新的 ZIP 后按上面的步骤再装一次即可，个人档案、收藏和历史都会保留。
+
+卸载
+双击 uninstall.cmd，输入学校 id。个人数据保留在 %LOCALAPPDATA%\CampusOpportunityWatcher。
+
+没有你的学校？
+到 https://github.com/shinji00222/campus-opportunity-watcher 下载源码，让 AI 读 AI_SETUP.md 帮你配置。
+
+报名、申请前请以原通知为准。

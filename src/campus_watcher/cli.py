@@ -8,7 +8,7 @@ import urllib.parse
 from collections import Counter
 from dataclasses import asdict
 
-from campus_watcher import __version__, net, state, text
+from campus_watcher import __version__, net, state, text, updates
 from campus_watcher.checker import CHECK_ALREADY_RUNNING, load_detail, run_check
 from campus_watcher.config import ConfigError, School, available_schools, load_school, school_search_dirs
 from campus_watcher.models import CATEGORIES
@@ -114,6 +114,22 @@ def cmd_inspect(url: str, rules: Rules, category: str | None) -> int:
     return 0
 
 
+def cmd_check_update() -> int:
+    """立即查询 GitHub 最新发行版，不写状态。"""
+    try:
+        latest = updates.fetch_latest_release()
+    except Exception as exc:
+        _print(f"检查更新失败：{exc}")
+        return 1
+    if not latest:
+        _print(f"当前版本 v{__version__}；仓库还没有正式发行版。")
+    elif updates.is_newer(latest["version"]):
+        _print(f"当前版本 v{__version__}，有新版本 v{latest['version']}：{latest['url']}")
+    else:
+        _print(f"当前版本 v{__version__}，已是最新（最新发行版 v{latest['version']}）。")
+    return 0
+
+
 def run_scheduled(school: School) -> int:
     try:
         _new_items, errors, _first_run = run_check(school, notify=True)
@@ -151,6 +167,7 @@ def build_parser() -> argparse.ArgumentParser:
     actions.add_argument("--validate", action="store_true", help="检查配置文件是否有效")
     actions.add_argument("--probe", action="store_true", help="试跑所有来源并打印结果，不写状态")
     actions.add_argument("--inspect", metavar="URL", help="分析一个网页适不适合做来源")
+    actions.add_argument("--check-update", action="store_true", help="查询 GitHub 上有没有新版本")
     parser.add_argument("--source", help="配合 --probe：只试跑这个来源")
     parser.add_argument("--details", type=int, default=0, metavar="N", help="配合 --probe：每个来源抓 N 条详情")
     parser.add_argument("--show", type=int, default=5, metavar="N", help="配合 --probe：每个来源显示 N 条标题")
@@ -165,6 +182,8 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.list_schools:
         return cmd_list_schools()
+    if args.check_update:
+        return cmd_check_update()
     if args.inspect:
         try:
             rules = load_school(args.school, args.config).rules if (args.school or args.config) else Rules()

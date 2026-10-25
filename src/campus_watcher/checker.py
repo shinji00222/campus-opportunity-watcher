@@ -6,7 +6,7 @@ from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import date, datetime, timedelta
 
-from campus_watcher import net, state, text
+from campus_watcher import net, state, text, updates
 from campus_watcher.config import School
 from campus_watcher.models import Notice
 from campus_watcher.sources import check_all
@@ -139,12 +139,25 @@ def load_detail(n: Notice) -> Notice:
     return n
 
 
-def notify_windows(app_name: str, title: str, message: str) -> None:
+def notify_windows(app_name: str, title: str, message: str, launch: str = "") -> None:
     try:
         from winotify import Notification
-        Notification(app_id=app_name, title=title, msg=message, duration="long").show()
+        Notification(app_id=app_name, title=title, msg=message, duration="long", launch=launch).show()
     except Exception as exc:
         state.log(f"通知发送失败: {exc!r}")
+
+
+def check_for_update(school: School) -> None:
+    """检查完顺带看一下有没有新版本；任何失败都不影响本次检查结果。"""
+    def announce(release: dict) -> None:
+        notify_windows(school.app_name, f"{school.app_name} 有新版本 v{release['version']}",
+                       "点击打开下载页面。更新时关闭程序，下载新版后重新运行安装脚本即可，个人数据会保留。",
+                       release["url"])
+
+    try:
+        updates.maybe_check_for_update(announce)
+    except Exception as exc:
+        state.log(f"检查更新异常：{exc!r}")
 
 
 @contextmanager
@@ -159,7 +172,10 @@ def run_check(school: School, notify: bool = True) -> tuple[list[Notice], list[s
         if not acquired:
             state.log(CHECK_ALREADY_RUNNING)
             return [], [CHECK_ALREADY_RUNNING], False
-        return _run_check_locked(school, notify)
+        result = _run_check_locked(school, notify)
+        if notify:
+            check_for_update(school)
+        return result
 
 
 def _run_check_locked(school: School, notify: bool) -> tuple[list[Notice], list[str], bool]:
