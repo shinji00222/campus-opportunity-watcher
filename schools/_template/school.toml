@@ -1,0 +1,46 @@
+# 新学校模板：复制整个 _template 文件夹，改名为学校 id（如 schools/sysu/），再改下面的内容。
+# 字段说明和配置步骤见仓库根目录 AI_SETUP.md。以 _ 开头的文件夹不会被当成学校加载。
+
+[school]
+id = "example"            # 小写英文/数字/短横线，必须和文件夹名一致
+name = "示例大学"
+short_name = "示例"        # 程序标题显示为“示例机会提醒”
+
+[keywords]
+# 可选：在内置关键词之外追加。标题含这些词就归到对应分类。
+# "竞赛" = ["某某杯"]
+# "出国" = []
+# "实习" = []
+# ignore = ["标题含这些词就跳过"]
+
+# 学校官网通知：页面上的链接标题像竞赛/实习/出国就会被收集。
+[[sources]]
+name = "学校通知公告"
+type = "html_links"
+url = "https://www.example.edu.cn/tzgg.htm"
+# category = "竞赛"                         # 可选：这个页面默认归哪类（标题仍需含任一关键词）
+# pages_pattern = '(?:^|/)tzgg/\d+\.htm$'   # 可选：分页链接的正则
+# extra_pages = 3                           # 可选：多读几页（1–10）
+
+# 全国性平台：不需要改网址，直接保留。
+[[sources]]
+name = "蓝桥杯大赛官网"
+type = "lanqiao"
+
+[[sources]]
+name = "国家大学生就业服务平台实习岗位"
+type = "ncss_internships"
+area_code = "44"          # 省级行政区划代码前两位，如北京 11、上海 31、广东 44；留空 "" 表示全国
+max_pages = 3
+
+[[sources]]
+name = "国际组织实习平台"
+type = "ncss_international"
+max_pages = 2
+
+# 页面结构特殊（链接里没有标题、需要调接口）时，在同目录 parsers.py 写函数：
+# [[sources]]
+# name = "某平台"
+# type = "custom"
+# parser = "my_parser"
+# url = "https://..."

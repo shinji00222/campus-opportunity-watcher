@@ -1,0 +1,96 @@
+# 广东工业大学（2026-10 核对过的公开来源）
+# 字段说明见仓库根目录 AI_SETUP.md。
+
+[school]
+id = "gdut"
+name = "广东工业大学"
+short_name = "广工"
+
+[keywords]
+# 在内置关键词之外追加。工科实验竞赛栏目会截断长标题，所以要用赛事名前缀。
+"竞赛" = ["实验综合技能竞赛", "工科大学生实验综", "工科大学生实验综合技能", "工科大学生综合实验技能"]
+
+[[sources]]
+name = "学校通知公告"
+type = "html_links"
+url = "https://www.gdut.edu.cn/index/tzgg.htm"
+
+[[sources]]
+name = "教务处"
+type = "html_links"
+url = "https://jwc.gdut.edu.cn/"
+category = "竞赛"
+
+[[sources]]
+name = "学生工作处"
+type = "html_links"
+url = "https://xsc.gdut.edu.cn/xwzx/tzgg.htm"
+# 较早的竞赛通知会落到分页里，多读 3 页。
+pages_pattern = '(?:^|/)tzgg/\d+\.htm(?:$|[?#])'
+extra_pages = 3
+
+[[sources]]
+name = "学生就业指导中心赛事"
+type = "custom"
+parser = "career_competitions"
+url = "https://career.gdut.edu.cn/competition/competitions"
+category = "竞赛"
+
+[[sources]]
+name = "创新创业学院"
+type = "html_links"
+url = "https://cxcy.gdut.edu.cn/"
+category = "竞赛"
+
+[[sources]]
+name = "集成电路学院竞赛通知"
+type = "html_links"
+url = "https://sme.gdut.edu.cn/index/tzgg.htm"
+category = "竞赛"
+
+[[sources]]
+name = "经济学院竞赛通知"
+type = "html_links"
+url = "https://jjxy.gdut.edu.cn/"
+category = "竞赛"
+
+[[sources]]
+name = "广工双创平台竞赛征集"
+type = "custom"
+parser = "icxcy_collection"
+url = "https://icxcy.gdut.edu.cn/"
+category = "竞赛"
+
+[[sources]]
+name = "广东省工科大学生实验综合技能竞赛"
+type = "custom"
+parser = "jnds_competitions"
+url = "https://jnds.gdut.edu.cn/"
+category = "竞赛"
+
+[[sources]]
+name = "工程训练中心学科竞赛"
+type = "html_links"
+url = "https://etc.gdut.edu.cn/index/xkjs.htm"
+category = "竞赛"
+
+[[sources]]
+name = "蓝桥杯大赛官网"
+type = "lanqiao"
+
+[[sources]]
+name = "国际合作与交流处"
+type = "html_links"
+url = "https://wsc.gdut.edu.cn/"
+category = "出国"
+
+[[sources]]
+name = "国家大学生就业服务平台实习岗位"
+type = "ncss_internships"
+area_code = "44"
+max_pages = 3
+
+[[sources]]
+name = "国际组织实习平台"
+type = "ncss_international"
+max_pages = 2

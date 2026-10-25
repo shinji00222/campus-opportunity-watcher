@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+build/
+dist/
+release/
+*.spec
+*.exe
+*.zip
+state.json
+state.corrupt-*.json
+watcher.log*
+.idea/
+.vscode/
