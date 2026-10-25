@@ -49,7 +49,7 @@ class BundledSchoolTests(unittest.TestCase):
     def test_gdut_keeps_its_extra_keywords(self):
         school = load_school("gdut")
         self.assertEqual(school.rules.classify("关于提交2026年广东省工科大学生实验综..."), "竞赛")
-        self.assertEqual(school.app_name, "广工机会提醒")
+        self.assertEqual(school.app_name, "校园机会提醒")
 
 
 class ValidationTests(unittest.TestCase):

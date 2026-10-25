@@ -13,6 +13,7 @@ from campus_watcher import state
 from campus_watcher.models import CATEGORIES
 from campus_watcher.rules import Rules
 
+APP_NAME = "校园机会提醒"
 SOURCE_TYPES = ("html_links", "ncss_internships", "ncss_international", "lanqiao", "custom")
 CONFIG_FILE = "school.toml"
 PARSERS_FILE = "parsers.py"
@@ -37,7 +38,7 @@ class School:
 
     @property
     def app_name(self) -> str:
-        return f"{self.short_name}机会提醒"
+        return APP_NAME
 
 
 def school_search_dirs() -> list[Path]:

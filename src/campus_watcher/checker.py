@@ -150,7 +150,7 @@ def notify_windows(app_name: str, title: str, message: str, launch: str = "") ->
 def check_for_update(school: School) -> None:
     """检查完顺带看一下有没有新版本；任何失败都不影响本次检查结果。"""
     def announce(release: dict) -> None:
-        notify_windows(school.app_name, f"{school.app_name} 有新版本 v{release['version']}",
+        notify_windows(school.app_name, f"有新版本 v{release['version']}",
                        "点击打开下载页面。更新时关闭程序，下载新版后重新运行安装脚本即可，个人数据会保留。",
                        release["url"])
 

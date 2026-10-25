@@ -47,4 +47,4 @@ $shortcut.WorkingDirectory = $workDir
 $shortcut.Save()
 
 Start-Process -FilePath $program -ArgumentList "$prefix--school $School" -WorkingDirectory $workDir
-Write-Host "安装完成：每天 $FirstTime 和 $SecondTime 自动检查 $School。首次打开后请点“立即检测”建立基线。"
+Write-Host "安装完成：每天 $FirstTime 和 $SecondTime 自动检查 $School。首次打开后请点「立即检测」建立基线。"

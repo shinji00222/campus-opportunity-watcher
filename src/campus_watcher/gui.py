@@ -53,7 +53,7 @@ class MainWindow:
     def __init__(self, school: School):
         self.school = school
         self.root = tk.Tk()
-        self.root.title(school.app_name)
+        self.root.title(f"{school.app_name} · {school.short_name}")
         self.root.geometry("1120x720")
         self.root.minsize(820, 560)
         self.root.configure(background="#f3f6fb")
