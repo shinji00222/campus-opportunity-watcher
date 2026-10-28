@@ -31,7 +31,7 @@ $check = Start-Process -FilePath $program -ArgumentList "$prefix--school $School
 if ($check.ExitCode -ne 0) { throw "学校配置「$School」无效或不存在，请先按 AI_SETUP.md 配置并运行 --validate 查看原因。" }
 
 $action = New-ScheduledTaskAction -Execute $program -Argument "$prefix--school $School --scheduled" -WorkingDirectory $workDir
-$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 5) -MultipleInstances IgnoreNew
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 5) -MultipleInstances IgnoreNew
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
 foreach ($item in @(@("上午", $FirstTime), @("晚上", $SecondTime))) {
     $trigger = New-ScheduledTaskTrigger -Daily -At $item[1]
