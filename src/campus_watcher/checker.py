@@ -180,6 +180,7 @@ def run_check(school: School, notify: bool = True) -> tuple[list[Notice], list[s
 
 def _run_check_locked(school: School, notify: bool) -> tuple[list[Notice], list[str], bool]:
     saved = state.load_state()
+    net.reset_proxy_state()
     current, errors = check_all(school)
     now = now_text()
     seen = set(saved.get("seen", []))

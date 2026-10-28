@@ -12,7 +12,18 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CampusOpportunityWatcher
 MAX_PAGE_BYTES = 8 * 1024 * 1024
 _DIRECT_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 _proxy_unusable = threading.Event()
+_proxy_lock = threading.Lock()
 _BLOCK_PAGE = re.compile(r"安全验证|人机验证|请输入验证码|访问过于频繁|403 Forbidden|Access Denied", re.I)
+
+
+def reset_proxy_state() -> None:
+    # 每次检查开始时重新试代理：界面一直开着时，用户可能中途打开了代理软件。
+    _proxy_unusable.clear()
+
+
+def _proxy_refused(exc: BaseException) -> bool:
+    reason = exc.reason if isinstance(exc, urllib.error.URLError) else exc
+    return isinstance(reason, ConnectionRefusedError)
 
 
 def open_url(request: urllib.request.Request, timeout: int = 20):
@@ -30,9 +41,17 @@ def open_url(request: urllib.request.Request, timeout: int = 20):
     except urllib.error.HTTPError:
         raise
     except (urllib.error.URLError, ConnectionError, TimeoutError) as exc:
-        # 系统代理开着但代理软件没运行（WinError 10061）时，本次检查后续请求都直连。
-        _proxy_unusable.set()
-        state.log(f"系统代理不可用，改为直连：{exc}")
+        if _proxy_refused(exc):
+            # 系统代理开着但代理软件没运行（WinError 10061）时，本次检查后续请求都直连。
+            # 多个线程会同时失败，只记一次日志。
+            with _proxy_lock:
+                first = not _proxy_unusable.is_set()
+                _proxy_unusable.set()
+            if first:
+                state.log(f"系统代理不可用，本次检查改为直连：{exc}")
+        else:
+            # 超时等错误可能只是这个网站慢，代理本身没坏，只给这一条请求改直连。
+            state.log(f"走代理请求失败，这一条改为直连重试：{request.full_url}：{exc}")
         return _DIRECT_OPENER.open(direct_request, timeout=timeout)
 
 

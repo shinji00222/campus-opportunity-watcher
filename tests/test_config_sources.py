@@ -1,6 +1,7 @@
 import json
 import tempfile
 import textwrap
+import threading
 import unittest
 import urllib.error
 import urllib.request
@@ -173,6 +174,48 @@ class ProxyFallbackTests(unittest.TestCase):
         self.assertEqual(via_proxy.call_count, 1)
         self.assertEqual(direct.call_count, 2)
         self.assertIsNot(direct.call_args_list[0].args[0], request)
+
+    def test_timeout_via_proxy_retries_direct_once_but_keeps_proxy(self):
+        request = urllib.request.Request("https://example.com/")
+        with (
+            patch.object(urllib.request, "getproxies", return_value={"https": "http://127.0.0.1:10808"}),
+            patch.object(urllib.request, "urlopen", side_effect=[TimeoutError("slow"), "proxy"]) as via_proxy,
+            patch.object(net._DIRECT_OPENER, "open", return_value="direct"),
+            patch.object(net.state, "log"),
+        ):
+            self.assertEqual(net.open_url(request), "direct")
+            self.assertEqual(net.open_url(request), "proxy")
+        self.assertEqual(via_proxy.call_count, 2)
+        self.assertFalse(net._proxy_unusable.is_set())
+
+    def test_refused_proxy_is_logged_once_across_threads(self):
+        refused = urllib.error.URLError(ConnectionRefusedError(10061, "refused"))
+        barrier = threading.Barrier(4)
+
+        def refuse(*_args, **_kwargs):
+            barrier.wait(timeout=5)
+            raise refused
+
+        with (
+            patch.object(urllib.request, "getproxies", return_value={"https": "http://127.0.0.1:10808"}),
+            patch.object(urllib.request, "urlopen", side_effect=refuse),
+            patch.object(net._DIRECT_OPENER, "open", return_value="direct"),
+            patch.object(net.state, "log") as log,
+        ):
+            threads = [
+                threading.Thread(target=net.open_url, args=(urllib.request.Request(f"https://example.com/{i}"),))
+                for i in range(4)
+            ]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+        self.assertEqual(log.call_count, 1)
+
+    def test_reset_tries_proxy_again(self):
+        net._proxy_unusable.set()
+        net.reset_proxy_state()
+        self.assertFalse(net._proxy_unusable.is_set())
 
     def test_no_proxy_goes_direct_and_http_errors_are_not_retried(self):
         request = urllib.request.Request("https://example.com/")

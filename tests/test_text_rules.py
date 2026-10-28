@@ -58,6 +58,14 @@ class DetailExtractionTests(unittest.TestCase):
         _summary, _detail, conditions = text.extract_detail_data(html, "Intern")
         self.assertTrue(any("enrolled" in item for item in conditions))
 
+    def test_short_ncss_job_body_is_kept(self):
+        html = '<pre class="mainContent">负责公司文件的校对工作</pre>'
+        summary, detail_text, _conditions = text.extract_ncss_job_detail(html, "校对实习生")
+        self.assertEqual(detail_text, "负责公司文件的校对工作")
+        self.assertEqual(summary, "负责公司文件的校对工作")
+        with self.assertRaises(ValueError):
+            text.extract_ncss_job_detail('<pre class="mainContent"> <br> </pre>', "空岗位")
+
 
 class RulesTests(unittest.TestCase):
     def test_extra_keywords_are_merged_with_defaults(self):

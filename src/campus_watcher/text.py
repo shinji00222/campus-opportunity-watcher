@@ -176,7 +176,8 @@ def extract_ncss_job_detail(html: str, title: str) -> tuple[str, str, list[str]]
     lines = [re.sub(r"\s+", " ", line).strip() for line in body.splitlines()]
     lines = [line for line in lines if line]
     detail_text = "\n".join(lines)[:12000]
-    if len(detail_text) < 20:
+    # 有的企业只写一句话，短正文也保留，只有真的为空才报错。
+    if not detail_text:
         raise ValueError("国家大学生就业服务平台职位正文为空")
     summary = " ".join(lines[:2])[:220]
     markers = ("要求", "须", "必须", "本科", "硕士", "博士", "专业", "出勤", "实习", "经验", "语言")
