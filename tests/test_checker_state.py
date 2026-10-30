@@ -183,6 +183,15 @@ class PickNotificationsTests(TempAppDir):
         picked = checker.pick_notifications(items, self.school, profile)
         self.assertEqual({n.id for n in picked}, {"ai", "tool"})
 
+    def test_window_score_uses_the_same_interest_rule(self):
+        from campus_watcher.matching import evaluate_notice
+        profile = {"education": "本科生", "interests": "互联网"}
+        once = asdict(self.job("s", "销售岗", detail_text="通过电话或互联网开拓客户"))
+        _score, conditions, _hard = evaluate_notice(once, profile)
+        self.assertFalse(any(text.startswith("符合意向") for text, _unmet, _h in conditions))
+        _score, conditions, _hard = evaluate_notice(asdict(self.job("w", "互联网运营实习生")), profile)
+        self.assertTrue(any(text.startswith("符合意向") for text, _unmet, _h in conditions))
+
     def test_no_interests_means_no_filtering(self):
         items = [self.job("sales", "食品销售代表")]
         self.assertEqual(checker.pick_notifications(items, self.school, {"education": "本科生"}), items)

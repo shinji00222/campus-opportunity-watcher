@@ -36,6 +36,13 @@ def count_keyword(word: str, text: str) -> int:
     return text.count(word)
 
 
+def matches_interest(word: str, notice: dict) -> bool:
+    """标题里有，或者正文里出现至少两次。正文只提一次多半是顺带一句（“通过互联网开拓客户”、公司介绍）。"""
+    title = str(notice.get("title", "")).lower()
+    body = str(notice.get("detail_text") or notice.get("summary") or "").lower()
+    return bool(count_keyword(word, title)) or count_keyword(word, body) >= 2
+
+
 def evaluate_notice(notice: dict, profile: dict) -> tuple[int, list[tuple[str, bool, bool]], bool]:
     """返回 (匹配分, [(条件, 是否未达到, 是否硬条件)], 是否存在硬条件不符)。"""
     if not profile:
@@ -78,7 +85,7 @@ def evaluate_notice(notice: dict, profile: dict) -> tuple[int, list[tuple[str, b
                 actual = 0
             conditions.append((f"{label}要求 ≥ {required:g}（你的档案：{actual:g}）", actual < required, False))
 
-    matched = [x for x in interest_keywords(profile) if count_keyword(x, content.lower())]
+    matched = [x for x in interest_keywords(profile) if matches_interest(x, notice)]
     if matched:
         score += min(20, len(matched) * 5)
         conditions.append((f"符合意向：{'、'.join(matched)}", False, False))
