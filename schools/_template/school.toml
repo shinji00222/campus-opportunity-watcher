@@ -21,6 +21,7 @@ url = "https://www.example.edu.cn/tzgg.htm"
 # category = "竞赛"                         # 可选：这个页面默认归哪类（标题仍需含任一关键词）
 # pages_pattern = '(?:^|/)tzgg/\d+\.htm$'   # 可选：分页链接的正则
 # extra_pages = 3                           # 可选：多读几页（1–10）
+# notify = "match"                          # 可选：只通知符合档案意向的（默认 all；ncss 来源默认 match）
 
 # 全国性平台：不需要改网址，直接保留。
 [[sources]]

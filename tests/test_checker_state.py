@@ -150,6 +150,51 @@ class RunCheckTests(TempAppDir):
         self.assertEqual([n.id for n in selected], ["near", "far", "retry"])
 
 
+class PickNotificationsTests(TempAppDir):
+    JOBS = "国家大学生就业服务平台实习岗位"
+
+    def job(self, notice_id, title, detail_text=""):
+        return Notice(id=notice_id, title=title, url=f"https://job.ncss.cn/{notice_id}", source=self.JOBS,
+                      category="实习", detail_text=detail_text, detail="ncss_job")
+
+    def contest(self, notice_id, title):
+        return Notice(id=notice_id, title=title, url=f"https://example.edu.cn/{notice_id}", source="教务处")
+
+    def test_bulk_job_source_only_notifies_interest_matches_and_contests_come_first(self):
+        profile = {"education": "本科生", "interests": "人工智能,计算机"}
+        items = [
+            self.job("sales", "食品销售代表"),
+            self.job("ai", "AI训练实习生", detail_text="参与人工智能模型数据整理"),
+            self.contest("c", "2026年挑战杯竞赛报名通知"),
+        ]
+        picked = checker.pick_notifications(items, self.school, profile)
+        self.assertEqual([n.id for n in picked], ["c", "ai"])
+
+    def test_no_interests_means_no_filtering(self):
+        items = [self.job("sales", "食品销售代表")]
+        self.assertEqual(checker.pick_notifications(items, self.school, {"education": "本科生"}), items)
+
+    def test_hard_condition_failure_is_not_notified(self):
+        profile = {"education": "本科生", "interests": "竞赛"}
+        items = [self.contest("g", "研究生竞赛通知：参赛对象为全日制研究生")]
+        items[0].detail_text = "参赛对象：全日制在读研究生"
+        self.assertEqual(checker.pick_notifications(items, self.school, profile), [])
+
+    def test_run_check_notification_counts_only_picked_items(self):
+        self.save({"initialized": True, "seen": [], "notices": [],
+                   "profile": {"education": "本科生", "interests": "人工智能"}})
+        (new, _errors, _first), _fetch, notify = self.run_check([self.job("sales", "食品销售代表")])
+        self.assertEqual(len(new), 1)
+        notify.assert_not_called()
+        (new, _errors, _first), _fetch, notify = self.run_check(
+            [self.job("sales", "食品销售代表"), self.job("ai", "人工智能实习生"), self.job("qc", "质检员")]
+        )
+        self.assertEqual(len(new), 2)
+        title, preview = notify.call_args.args[1], notify.call_args.args[2]
+        self.assertIn("发现 1 条新消息", title)
+        self.assertIn("还有 1 条", preview)
+
+
 class StateFileTests(TempAppDir):
     def test_corrupt_state_is_preserved_and_reset(self):
         state.STATE_FILE.write_text("{not json", encoding="utf-8")

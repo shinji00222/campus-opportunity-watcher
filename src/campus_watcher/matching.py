@@ -25,6 +25,10 @@ _NUMERIC_RULES = (
 )
 
 
+def interest_keywords(profile: dict) -> list[str]:
+    return [x.strip().lower() for x in re.split(r"[,，、;；]", profile.get("interests", "")) if x.strip()]
+
+
 def evaluate_notice(notice: dict, profile: dict) -> tuple[int, list[tuple[str, bool, bool]], bool]:
     """返回 (匹配分, [(条件, 是否未达到, 是否硬条件)], 是否存在硬条件不符)。"""
     if not profile:
@@ -67,8 +71,7 @@ def evaluate_notice(notice: dict, profile: dict) -> tuple[int, list[tuple[str, b
                 actual = 0
             conditions.append((f"{label}要求 ≥ {required:g}（你的档案：{actual:g}）", actual < required, False))
 
-    interests = [x.strip().lower() for x in re.split(r"[,，、;；]", profile.get("interests", "")) if x.strip()]
-    matched = [x for x in interests if x in content.lower()]
+    matched = [x for x in interest_keywords(profile) if x in content.lower()]
     if matched:
         score += min(20, len(matched) * 5)
         conditions.append((f"符合意向：{'、'.join(matched)}", False, False))

@@ -7,7 +7,8 @@ from dataclasses import asdict
 from datetime import date, datetime, timedelta
 
 from campus_watcher import net, state, text, updates
-from campus_watcher.config import School
+from campus_watcher.config import School, source_notify_mode
+from campus_watcher.matching import evaluate_notice, interest_keywords
 from campus_watcher.models import Notice
 from campus_watcher.sources import check_all
 
@@ -137,6 +138,32 @@ def load_detail(n: Notice) -> Notice:
     finally:
         n.detail_attempted_at = now_text()
     return n
+
+
+_CATEGORY_ORDER = {"竞赛": 0, "出国": 1, "实习": 2}
+
+
+def pick_notifications(new_items: list[Notice], school: School, profile: dict) -> list[Notice]:
+    """挑出要弹通知的新消息，竞赛、出国排在实习前面，同类按匹配分排序。
+
+    硬条件不符的不通知；notify="match" 的来源只通知命中意向关键词的。
+    没填意向关键词时不过滤，免得什么都收不到。
+    """
+    modes = {source["name"]: source_notify_mode(source) for source in school.sources}
+    interests = interest_keywords(profile)
+    picked = []
+    for n in new_items:
+        notice = asdict(n)
+        score, _conditions, hard_fail = evaluate_notice(notice, profile)
+        if hard_fail:
+            continue
+        if modes.get(n.source) == "match" and interests:
+            content = f"{n.title} {n.detail_text or n.summary}".lower()
+            if not any(word in content for word in interests):
+                continue
+        picked.append((_CATEGORY_ORDER.get(n.category, 3), -score, n))
+    picked.sort(key=lambda item: (item[0], item[1]))
+    return [n for _order, _score, n in picked]
 
 
 def notify_windows(app_name: str, title: str, message: str, launch: str = "") -> None:
@@ -274,17 +301,22 @@ def _run_check_locked(school: School, notify: bool) -> tuple[list[Notice], list[
         removed_expired = prune_expired_notices(saved)
         state.write_state_atomic(saved)
 
-    if notify and new_items and not first_run:
-        preview = "；".join(n.title[:35] for n in new_items[:3])
-        if len(new_items) > 3:
-            preview += f"；另有 {len(new_items) - 3} 条"
+    to_notify = [] if first_run else pick_notifications(new_items, school, saved.get("profile", {}))
+    if notify and to_notify:
+        preview = "；".join(n.title[:35] for n in to_notify[:3])
+        if len(to_notify) > 3:
+            preview += f"；另有 {len(to_notify) - 3} 条"
+        quiet = len(new_items) - len(to_notify)
+        if quiet:
+            preview += f"（还有 {quiet} 条与档案不太匹配，只在界面里显示）"
         counts: dict[str, int] = {}
-        for item in new_items:
+        for item in to_notify:
             counts[item.category] = counts.get(item.category, 0) + 1
         category_text = "、".join(f"{k}{v}条" for k, v in counts.items())
-        notify_windows(school.app_name, f"发现 {len(new_items)} 条新消息（{category_text}）", preview)
+        notify_windows(school.app_name, f"发现 {len(to_notify)} 条新消息（{category_text}）", preview)
     state.log(
-        f"检查完成，发现 {len(current)} 条，新增 {0 if first_run else len(new_items)} 条，"
+        f"检查完成，发现 {len(current)} 条，新增 {0 if first_run else len(new_items)} 条"
+        f"（通知 {len(to_notify)} 条），"
         f"清理过期 {len(removed_expired)} 条，清理归档/无关 {len(removed_irrelevant)} 条，错误 {len(errors)} 个"
     )
     return ([] if first_run else new_items), errors, first_run

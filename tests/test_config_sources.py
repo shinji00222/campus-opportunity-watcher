@@ -79,11 +79,12 @@ class ValidationTests(unittest.TestCase):
                 name = "b"
                 type = "ncss_internships"
                 area_code = "4"
+                notify = "some"
             """)
             with self.assertRaises(ConfigError) as caught:
                 load_school_file(path)
         message = str(caught.exception)
-        for expected in ("school.id", "school.name", "keywords.讲座", "需要 http(s)", "来源名称重复", "missing", "area_code"):
+        for expected in ("school.id", "school.name", "keywords.讲座", "需要 http(s)", "来源名称重复", "missing", "area_code", "notify"):
             self.assertIn(expected, message)
 
     def test_toml_syntax_error_is_reported(self):

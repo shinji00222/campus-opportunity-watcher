@@ -15,6 +15,14 @@ from campus_watcher.rules import Rules
 
 APP_NAME = "校园机会提醒"
 SOURCE_TYPES = ("html_links", "ncss_internships", "ncss_international", "lanqiao", "custom")
+# notify：all 新消息都弹通知；match 只通知符合个人档案意向的（界面里照样显示全部）。
+NOTIFY_MODES = ("all", "match")
+# 全国招聘平台每天几十条、大多与专业无关，默认只通知匹配的。
+_MATCH_BY_DEFAULT = ("ncss_internships", "ncss_international")
+
+
+def source_notify_mode(source: dict) -> str:
+    return source.get("notify") or ("match" if source.get("type") in _MATCH_BY_DEFAULT else "all")
 CONFIG_FILE = "school.toml"
 PARSERS_FILE = "parsers.py"
 
@@ -121,6 +129,8 @@ def validate_raw(raw: dict, parser_names: set[str]) -> list[str]:
             continue
         if "category" in source and source["category"] not in CATEGORIES:
             problems.append(f"{label} 的 category 只能是 {'、'.join(CATEGORIES)}")
+        if "notify" in source and source["notify"] not in NOTIFY_MODES:
+            problems.append(f"{label} 的 notify 只能是 {'、'.join(NOTIFY_MODES)}")
         url = source.get("url")
         if kind in ("html_links", "custom") and not (isinstance(url, str) and url.startswith(("http://", "https://"))):
             problems.append(f"{label} 需要 http(s) 开头的 url")
