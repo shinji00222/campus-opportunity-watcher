@@ -146,7 +146,9 @@ _CATEGORY_ORDER = {"竞赛": 0, "出国": 1, "实习": 2}
 def pick_notifications(new_items: list[Notice], school: School, profile: dict) -> list[Notice]:
     """挑出要弹通知的新消息，竞赛、出国排在实习前面，同类按匹配分排序。
 
-    硬条件不符的不通知；notify="match" 的来源只通知命中意向关键词的。
+    硬条件不符的不通知；notify="match" 的来源只通知命中意向关键词的：
+    标题里有，或者正文里出现至少两次。正文只提一次多半是顺带一句
+    （“通过互联网开拓客户”、公司介绍），不算。
     没填意向关键词时不过滤，免得什么都收不到。
     """
     modes = {source["name"]: source_notify_mode(source) for source in school.sources}
@@ -158,8 +160,8 @@ def pick_notifications(new_items: list[Notice], school: School, profile: dict) -
         if hard_fail:
             continue
         if modes.get(n.source) == "match" and interests:
-            content = f"{n.title} {n.detail_text or n.summary}".lower()
-            if not any(word in content for word in interests):
+            title, body = n.title.lower(), (n.detail_text or n.summary).lower()
+            if not any(word in title or body.count(word) >= 2 for word in interests):
                 continue
         picked.append((_CATEGORY_ORDER.get(n.category, 3), -score, n))
     picked.sort(key=lambda item: (item[0], item[1]))

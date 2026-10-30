@@ -89,6 +89,8 @@ class RulesTests(unittest.TestCase):
         self.assertTrue(is_stale_competition({"category": "竞赛", "title": "2025年大学生竞赛"}, today))
         self.assertFalse(is_stale_competition({"category": "竞赛", "title": "2025—2026学年竞赛"}, today))
         self.assertTrue(is_stale_competition({"category": "竞赛", "title": "2026年数学竞赛获奖名单"}, today))
+        report = "“经”彩无限——经济学院2026年学生运动会暨校运会选拔赛成功举办"
+        self.assertTrue(is_stale_competition({"category": "竞赛", "title": report}, today))
         self.assertTrue(is_stale_abroad({"category": "出国", "title": "2026年暑期访学项目"}, today))
         self.assertFalse(is_stale_abroad({"category": "出国", "title": "2027春季访学项目"}, today))
         self.assertTrue(is_stale_internship({"category": "实习", "title": "实习", "date": "2026-08-01"}, today))

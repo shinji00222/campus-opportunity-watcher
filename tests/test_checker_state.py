@@ -164,11 +164,14 @@ class PickNotificationsTests(TempAppDir):
         profile = {"education": "本科生", "interests": "人工智能,计算机"}
         items = [
             self.job("sales", "食品销售代表"),
-            self.job("ai", "AI训练实习生", detail_text="参与人工智能模型数据整理"),
+            self.job("ai", "人工智能训练实习生"),
+            self.job("dev", "研发实习生", detail_text="参与人工智能模型开发；有计算机视觉项目者优先，计算机相关专业"),
+            self.job("web", "销售岗", detail_text="通过电话或计算机网络开拓客户"),
             self.contest("c", "2026年挑战杯竞赛报名通知"),
         ]
         picked = checker.pick_notifications(items, self.school, profile)
-        self.assertEqual([n.id for n in picked], ["c", "ai"])
+        self.assertEqual([n.id for n in picked][0], "c")
+        self.assertEqual({n.id for n in picked}, {"c", "ai", "dev"})
 
     def test_no_interests_means_no_filtering(self):
         items = [self.job("sales", "食品销售代表")]
