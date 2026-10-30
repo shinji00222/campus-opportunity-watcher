@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta
 
 from campus_watcher import net, state, text, updates
 from campus_watcher.config import School, source_notify_mode
-from campus_watcher.matching import evaluate_notice, interest_keywords
+from campus_watcher.matching import count_keyword, evaluate_notice, interest_keywords
 from campus_watcher.models import Notice
 from campus_watcher.sources import check_all
 
@@ -161,7 +161,7 @@ def pick_notifications(new_items: list[Notice], school: School, profile: dict) -
             continue
         if modes.get(n.source) == "match" and interests:
             title, body = n.title.lower(), (n.detail_text or n.summary).lower()
-            if not any(word in title or body.count(word) >= 2 for word in interests):
+            if not any(count_keyword(word, title) or count_keyword(word, body) >= 2 for word in interests):
                 continue
         picked.append((_CATEGORY_ORDER.get(n.category, 3), -score, n))
     picked.sort(key=lambda item: (item[0], item[1]))

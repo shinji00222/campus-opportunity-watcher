@@ -29,6 +29,13 @@ def interest_keywords(profile: dict) -> list[str]:
     return [x.strip().lower() for x in re.split(r"[,，、;；]", profile.get("interests", "")) if x.strip()]
 
 
+def count_keyword(word: str, text: str) -> int:
+    """数关键词出现次数（都按小写）。英文词只算完整单词，免得 "ai" 命中 unpaid、maintain。"""
+    if re.fullmatch(r"[a-z0-9+#.\- ]+", word):
+        return len(re.findall(rf"(?<![a-z0-9]){re.escape(word)}(?![a-z0-9])", text))
+    return text.count(word)
+
+
 def evaluate_notice(notice: dict, profile: dict) -> tuple[int, list[tuple[str, bool, bool]], bool]:
     """返回 (匹配分, [(条件, 是否未达到, 是否硬条件)], 是否存在硬条件不符)。"""
     if not profile:
@@ -71,7 +78,7 @@ def evaluate_notice(notice: dict, profile: dict) -> tuple[int, list[tuple[str, b
                 actual = 0
             conditions.append((f"{label}要求 ≥ {required:g}（你的档案：{actual:g}）", actual < required, False))
 
-    matched = [x for x in interest_keywords(profile) if x in content.lower()]
+    matched = [x for x in interest_keywords(profile) if count_keyword(x, content.lower())]
     if matched:
         score += min(20, len(matched) * 5)
         conditions.append((f"符合意向：{'、'.join(matched)}", False, False))

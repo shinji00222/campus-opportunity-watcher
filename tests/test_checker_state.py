@@ -173,6 +173,16 @@ class PickNotificationsTests(TempAppDir):
         self.assertEqual([n.id for n in picked][0], "c")
         self.assertEqual({n.id for n in picked}, {"c", "ai", "dev"})
 
+    def test_english_keyword_matches_whole_words_only(self):
+        profile = {"education": "本科生", "interests": "AI"}
+        items = [
+            self.job("un", "INTERN - Unpaid Internship", detail_text="unpaid role, maintain archives, Thailand"),
+            self.job("ai", "AI训练实习生"),
+            self.job("tool", "职业规划实习生", detail_text="使用AI工具优化简历；了解ai写作"),
+        ]
+        picked = checker.pick_notifications(items, self.school, profile)
+        self.assertEqual({n.id for n in picked}, {"ai", "tool"})
+
     def test_no_interests_means_no_filtering(self):
         items = [self.job("sales", "食品销售代表")]
         self.assertEqual(checker.pick_notifications(items, self.school, {"education": "本科生"}), items)
